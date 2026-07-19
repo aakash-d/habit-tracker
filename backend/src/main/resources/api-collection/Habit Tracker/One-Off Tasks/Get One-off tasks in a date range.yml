@@ -1,0 +1,22 @@
+info:
+  name: Get One-off tasks in a date range
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:8080/api/one-offs?from=2026-07-01&to=2026-07-31
+  params:
+    - name: from
+      value: 2026-07-01
+      type: query
+    - name: to
+      value: 2026-07-31
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

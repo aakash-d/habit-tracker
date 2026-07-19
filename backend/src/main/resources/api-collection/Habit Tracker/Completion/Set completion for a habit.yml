@@ -1,0 +1,24 @@
+info:
+  name: Set completion for a habit
+  type: http
+  seq: 1
+
+http:
+  method: PUT
+  url: http://localhost:8080/api/completions
+  body:
+    type: json
+    data: |-
+      {
+        "habitId": 1,
+        "date": "2026-06-30",
+        "done": false
+      //   "note": "Leg day"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

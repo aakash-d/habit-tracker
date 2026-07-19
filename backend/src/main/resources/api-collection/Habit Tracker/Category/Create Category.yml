@@ -1,0 +1,25 @@
+info:
+  name: Create Category
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/api/categories
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Learning",
+        "color": "#3b82f6"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

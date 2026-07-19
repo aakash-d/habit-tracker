@@ -1,0 +1,15 @@
+info:
+  name: Delete a one-off task
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: http://localhost:8080/api/one-offs/1
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -9,6 +9,7 @@ import { CalendarGrid } from "@/components/Calendar/CalendarGrid";
 import { DayDetailPanel } from "@/components/DayDetail/DayDetailPanel";
 import { Modal } from "@/components/ui/Modal";
 import { HabitManager } from "@/components/Habits/HabitManager";
+import { MonthSummaryCard } from "@/components/Calendar/MonthSummaryCard";
 
 export default function Home() {
   const [managerOpen, setManagerOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function Home() {
           <section className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
             <CalendarHeader />
             <CalendarGrid />
+            <MonthSummaryCard />
           </section>
 
           <aside className="rounded-xl border border-gray-200 bg-white p-4 dark:bg-gray-900">

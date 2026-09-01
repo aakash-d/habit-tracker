@@ -74,7 +74,7 @@ public class HabitService {
 	public void reorder(Long id, String direction) {
 		List<Habit> active = repository.findByUserIdOrderByOrderAsc(currentUser.getId()).stream()
 				.filter(h -> !Boolean.TRUE.equals(h.getArchived()))
-				.toList();
+				.collect(Collectors.toCollection(ArrayList::new));
 		
 		int idx = -1;
 		for(int i=0; i<active.size(); i++) {

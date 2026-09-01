@@ -5,8 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.tracker.habit_tracker_api.auth.CurrentUser;
 import com.tracker.habit_tracker_api.habit.dto.HabitRequest;
 import com.tracker.habit_tracker_api.habit.dto.HabitResponse;
 
@@ -17,20 +20,24 @@ import lombok.RequiredArgsConstructor;
 public class HabitService {
 	
 	private final HabitRepository repository;
+	private final CurrentUser currentUser;
 	
 	public List<HabitResponse> findAll() {
-		return repository.findAllByOrderByOrderAsc().stream()
+		return repository.findByUserIdOrderByOrderAsc(currentUser.getId()).stream()
 				.map(this::toResponse)
 				.toList();
 	}
 	
 	public HabitResponse create(HabitRequest request) {
-		int nextOrder = repository.findAll().stream()
+		Long userId = currentUser.getId();
+		
+		int nextOrder = repository.findByUserIdOrderByOrderAsc(userId).stream()
 				.mapToInt(h -> h.getOrder() == null ? -1 : h.getOrder())
 				.max()
 				.orElse(-1) + 1;
 		
 		Habit habit = Habit.builder()
+				.userId(userId)
 				.name(request.getName())
 				.icon(request.getIcon())
 				.categoryId(request.getCategoryId())
@@ -44,8 +51,8 @@ public class HabitService {
 	}
 	
 	public HabitResponse update(Long id, HabitRequest request) {
-		Habit habit = repository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Habit not found: " + id));
+		Habit habit = repository.findByIdAndUserId(id, currentUser.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Habit not found: " + id));
 		
 		habit.setName(request.getName());
 		habit.setIcon(request.getIcon());
@@ -58,16 +65,16 @@ public class HabitService {
 	}
 	
 	public HabitResponse archive(Long id) {
-		Habit habit = repository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Habit not found: " + id));
+		Habit habit = repository.findByIdAndUserId(id, currentUser.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Habit not found: " + id));
 		habit.setArchived(true);
 		return toResponse(repository.save(habit));
 	}
 	
 	public void reorder(Long id, String direction) {
-		List<Habit> active = repository.findAllByOrderByOrderAsc().stream()
+		List<Habit> active = repository.findByUserIdOrderByOrderAsc(currentUser.getId()).stream()
 				.filter(h -> !Boolean.TRUE.equals(h.getArchived()))
-				.collect(Collectors.toCollection(ArrayList::new));
+				.toList();
 		
 		int idx = -1;
 		for(int i=0; i<active.size(); i++) {
@@ -90,6 +97,15 @@ public class HabitService {
 			active.get(i).setOrder(i);
 		}
 		repository.saveAll(active);
+		
+//		Habit a = active.get(idx);
+//		Habit b = active.get(swapWith);
+//		Integer temp = a.getOrder();
+//		a.setOrder(b.getOrder());
+//		b.setOrder(temp);
+//		
+//		repository.save(a);
+//		repository.save(b);
 	}
 	
 	private HabitResponse toResponse(Habit h) {

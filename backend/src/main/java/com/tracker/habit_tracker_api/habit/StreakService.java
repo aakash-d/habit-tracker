@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.tracker.habit_tracker_api.auth.CurrentUser;
 import com.tracker.habit_tracker_api.completion.Completion;
 import com.tracker.habit_tracker_api.completion.CompletionRepository;
 import com.tracker.habit_tracker_api.habit.dto.StreakResponse;
@@ -24,14 +27,15 @@ public class StreakService {
 	
 	private final HabitRepository habitRepository;
 	private final CompletionRepository completionRepository;
+	private final CurrentUser currentUser;
 	
 	public StreakResponse getStreak(Long habitId, int weekStart) {
-		Habit habit = habitRepository.findById(habitId)
-				.orElseThrow(() -> new RuntimeException("Habit not found: " + habitId));
+		Habit habit = habitRepository.findByIdAndUserId(habitId, currentUser.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Habit not found: " + habitId));
 		
 		// Set of dates this habit was completed
 		Set<LocalDate> doneDates = new HashSet<>();
-		for(Completion c : completionRepository.findByHabitIdAndDoneTrue(habitId)) {
+		for(Completion c : completionRepository.findByUserIdAndHabitIdAndDoneTrue(currentUser.getId(), habitId)) {
 			doneDates.add(c.getDate());
 		}
 		

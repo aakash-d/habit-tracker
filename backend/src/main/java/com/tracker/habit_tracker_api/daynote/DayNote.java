@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "day_note", uniqueConstraints = @UniqueConstraint(columnNames = {"date"}))
+@Table(name = "day_note", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "date"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -28,9 +28,12 @@ public class DayNote {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false)
 	private LocalDate date;
 	
 	@Column(columnDefinition = "TEXT")
 	private String note;
+	
+	@Column(name="user_id", nullable=false)
+	private Long userId;
 }

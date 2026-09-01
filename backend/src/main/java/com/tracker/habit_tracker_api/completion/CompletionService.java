@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.tracker.habit_tracker_api.auth.CurrentUser;
 import com.tracker.habit_tracker_api.completion.dto.CompletionRequest;
 import com.tracker.habit_tracker_api.completion.dto.DayRecordResponse;
 
@@ -17,12 +18,14 @@ import lombok.RequiredArgsConstructor;
 public class CompletionService {
 	
 	private final CompletionRepository repository;
+	private final CurrentUser currentUser;
 	
 	/** Upsert: create or update the completion for (habitId, date) */
 	public void setCompletion(CompletionRequest request) {
 		Completion completion = repository
-				.findByHabitIdAndDate(request.getHabitId(), request.getDate())
+				.findByUserIdAndHabitIdAndDate(currentUser.getId(), request.getHabitId(), request.getDate())
 				.orElseGet(() -> Completion.builder()
+						.userId(currentUser.getId())
 						.habitId(request.getHabitId())
 						.date(request.getDate())
 						.build());
@@ -36,7 +39,7 @@ public class CompletionService {
 	
 	/** Returns nested RecordsByDate shape for a date range */
 	public Map<String, DayRecordResponse> getRange(LocalDate from, LocalDate to) {
-		List<Completion> rows = repository.findByDateBetween(from, to);
+		List<Completion> rows = repository.findByUserIdAndDateBetween(currentUser.getId(), from, to);
 		
 		// date -> (habitId -> done) and date -> (habitId -> note)
 		Map<String, Map<String, Boolean>> completionsByDate = new HashMap<>();

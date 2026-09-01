@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 public interface DayNoteRepository extends JpaRepository<DayNote, Long> {
 	
-	Optional<DayNote> findByDate(LocalDate date);
+	Optional<DayNote> findByUserIdAndDate(Long userId, LocalDate date);
 	
-	List<DayNote> findByDateBetween(LocalDate from, LocalDate to);
+	List<DayNote> findByUserIdAndDateBetween(Long userId, LocalDate from, LocalDate to);
 }

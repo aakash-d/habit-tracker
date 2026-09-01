@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Settings2, BarChart3 } from "lucide-react";
+import { Settings2, BarChart3, LogOut } from "lucide-react";
 import { SettingsMenu } from "@/components/Settings/SettingsMenu";
 import { CalendarHeader } from "@/components/Calendar/CalendarHeader";
 import { CalendarGrid } from "@/components/Calendar/CalendarGrid";
@@ -10,9 +10,13 @@ import { DayDetailPanel } from "@/components/DayDetail/DayDetailPanel";
 import { Modal } from "@/components/ui/Modal";
 import { HabitManager } from "@/components/Habits/HabitManager";
 import { MonthSummaryCard } from "@/components/Calendar/MonthSummaryCard";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useLogout } from "@/hooks/useAuth";
 
 export default function Home() {
   const [managerOpen, setManagerOpen] = useState(false);
+  const username = useAuthStore((s) => s.username);
+  const logout = useLogout();
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
@@ -33,6 +37,16 @@ export default function Home() {
               <Settings2 size={16} /> Manage Habits
             </button>
             <SettingsMenu />
+            <span className="hidden text-sm text-gray-500 sm:inline dark:text-gray-400">
+              {username}
+            </span>
+            <button
+              onClick={logout}
+              className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+              title="Log out"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
 

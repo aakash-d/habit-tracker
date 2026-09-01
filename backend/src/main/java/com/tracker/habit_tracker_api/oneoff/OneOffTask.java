@@ -40,4 +40,7 @@ public class OneOffTask {
 	
 	@Column(nullable = false)
 	private Boolean done;
+	
+	@Column(name="user_id", nullable=false)
+	private Long userId;
 }

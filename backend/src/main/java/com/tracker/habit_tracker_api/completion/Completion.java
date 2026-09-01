@@ -18,7 +18,7 @@ import lombok.Setter;
 @Entity
 @Table(
 	name = "completion",
-	uniqueConstraints = @UniqueConstraint(columnNames = {"habit_id", "names"})
+	uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "habit_id", "date"})
 )
 @Getter
 @Setter
@@ -42,4 +42,7 @@ public class Completion {
 	
 	@Column(columnDefinition = "TEXT")
 	private String note; // per-task note (taskNotes[habitId] in frontend)
+	
+	@Column(name="user_id", nullable=false)
+	private Long userId;
 }

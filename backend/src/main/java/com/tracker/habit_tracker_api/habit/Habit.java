@@ -51,4 +51,7 @@ public class Habit {
 	
 	@Column(nullable = false)
 	private Boolean archived;
+	
+	@Column(name="user_id", nullable=false)
+	private Long userId;
 }

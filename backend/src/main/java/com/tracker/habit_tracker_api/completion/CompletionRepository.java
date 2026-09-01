@@ -10,9 +10,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CompletionRepository extends JpaRepository<Completion, Long> {
 	
-	Optional<Completion> findByHabitIdAndDate(Long habitId, LocalDate date);
+	Optional<Completion> findByUserIdAndHabitIdAndDate(Long userId, Long habitId, LocalDate date);
 	
-	List<Completion> findByDateBetween(LocalDate from, LocalDate to);
+	List<Completion> findByUserIdAndDateBetween(Long userId, LocalDate from, LocalDate to);
 	
-	List<Completion> findByHabitIdAndDoneTrue(Long habitId);
+	List<Completion> findByUserIdAndHabitIdAndDoneTrue(Long userId, Long habitId);
 }

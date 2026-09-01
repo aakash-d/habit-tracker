@@ -1,5 +1,6 @@
 package com.tracker.habit_tracker_api.category;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,4 +27,7 @@ public class Category {
 	
 	private String name;
 	private String color;
+	
+	@Column(name="user_id", nullable=false)
+	private Long userId;
 }

@@ -3,7 +3,6 @@
 A full-stack habit tracking app with a monthly calendar, recurring habits, streaks, notes, one-off tasks, insights, and dark mode. Ships two ways: as a deployable web app, or as a self-contained Windows installer.
 
 ![Calendar](docs/calendar.png)
-![Insights](docs/insights.png)
 
 ## Tech Stack
 

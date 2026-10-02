@@ -1,5 +1,6 @@
 package com.tracker.habit_tracker_api.completion;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.persistence.Column;
@@ -33,6 +34,9 @@ public class Completion {
 	
 	@Column(name = "habit_id", nullable = false)
 	private Long habitId;
+	
+	@Column(precision = 10, scale = 2)
+	private BigDecimal value;
 	
 	@Column(nullable = false)
 	private LocalDate date;

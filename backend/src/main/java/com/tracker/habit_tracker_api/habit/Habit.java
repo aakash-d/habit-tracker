@@ -43,6 +43,10 @@ public class Habit {
 	@Column(columnDefinition = "json", nullable = false)
 	private Frequency frequency;
 	
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(columnDefinition = "json")
+	private Measurement measurement;
+	
 	@Column(name = "sort_order", nullable = false)
 	private Integer order;
 	

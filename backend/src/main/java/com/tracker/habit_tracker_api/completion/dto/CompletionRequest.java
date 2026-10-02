@@ -1,5 +1,6 @@
 package com.tracker.habit_tracker_api.completion.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +11,8 @@ public class CompletionRequest {
 	
 	@NotNull(message = "habitId is required")
 	private Long habitId;
+	
+	private BigDecimal value;
 	
 	@NotNull(message = "date is required")
 	private LocalDate date;

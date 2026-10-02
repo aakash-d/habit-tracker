@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Habit, Frequency } from "@/lib/types";
+import { Habit, Frequency, Measurement } from "@/lib/types";
 import { useAddHabit, useUpdateHabit } from "@/hooks/useHabits";
 import { useCategories } from "@/hooks/useCategories";
+import { asCount } from "@/lib/measurement";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -19,6 +20,7 @@ export function HabitForm({
     const { data: categories = [] } = useCategories();
     const addHabit = useAddHabit();
     const updateHabit = useUpdateHabit();
+    const existingCount = asCount(editing?.measurement);
 
     const [name, setName] = useState(editing?.name ?? "");
     const [icon, setIcon] = useState(editing?.icon ?? "");
@@ -35,6 +37,14 @@ export function HabitForm({
     const [startDate, setStartDate] = useState(
         editing?.createdAt ?? new Date().toISOString().slice(0, 10)
     );
+    const [isMeasurable, setIsMeasurable] = useState(existingCount !== null);
+    const [target, setTarget] = useState<string>(
+    existingCount ? String(existingCount.target) : ""
+    );
+    const [unit, setUnit] = useState(existingCount?.unit ?? "");
+    const [direction, setDirection] = useState<"atLeast" | "atMost">(
+    existingCount?.direction ?? "atLeast"
+    );
 
     const buildFrequency = (): Frequency => {
         switch (freqType) {
@@ -48,6 +58,18 @@ export function HabitForm({
                 return { type: "timesPerWeek", count: timesPerWeek };
         }
     };
+
+    const buildMeasurement = (): Measurement | null => {
+        if (!isMeasurable) return null;
+        const parsed = Number(target);
+        if (!Number.isFinite(parsed) || parsed <= 0) return null;
+        return {
+            type: "count",
+            target: parsed,
+            unit: unit.trim() || "units",
+            direction,
+        };
+    };
     
     const toggleDay = (d: number) =>
         setSpecificDays((prev) =>
@@ -57,7 +79,8 @@ export function HabitForm({
     const canSave =
         name.trim().length > 0 &&
         startDate.length > 0 &&
-        (freqType !== "specificDays" || specificDays.length > 0);
+        (freqType !== "specificDays" || specificDays.length > 0) &&
+        (!isMeasurable || (Number(target) > 0 && unit.trim().length > 0));
 
     const handleSave = () => {
         const frequency = buildFrequency();
@@ -67,6 +90,7 @@ export function HabitForm({
             categoryId: categoryId || null,
             frequency,
             createdAt: startDate,
+            measurement: buildMeasurement(),
         };
         if (editing) {
             updateHabit.mutate({ id: editing.id, ...payload }, { onSuccess: onDone });
@@ -132,6 +156,83 @@ export function HabitForm({
                     <option value="specificDays" className="bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100">Specific days</option>
                     <option value="timesPerWeek" className="bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100"> X times per week</option>
                 </select>
+            </div>
+
+            {/* Measurement */}
+            <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+            <label className="flex cursor-pointer items-center gap-2">
+                <input
+                type="checkbox"
+                checked={isMeasurable}
+                onChange={(e) => setIsMeasurable(e.target.checked)}
+                className="h-4 w-4 accent-blue-600"
+                />
+                <span className="text-sm font-medium">Track a measurable value</span>
+            </label>
+
+            {isMeasurable && (
+                <div className="mt-3 flex flex-col gap-3">
+                {/* Direction */}
+                <div className="flex gap-1.5">
+                    <button
+                    type="button"
+                    onClick={() => setDirection("atLeast")}
+                    className={[
+                        "flex-1 rounded-lg border px-2 py-1.5 text-xs transition",
+                        direction === "atLeast"
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : "border-gray-300 dark:border-gray-700",
+                    ].join(" ")}
+                    >
+                    At least (goal)
+                    </button>
+                    <button
+                    type="button"
+                    onClick={() => setDirection("atMost")}
+                    className={[
+                        "flex-1 rounded-lg border px-2 py-1.5 text-xs transition",
+                        direction === "atMost"
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : "border-gray-300 dark:border-gray-700",
+                    ].join(" ")}
+                    >
+                    At most (limit)
+                    </button>
+                </div>
+
+                {/* Target + unit */}
+                <div className="flex gap-2">
+                    <div className="flex-1">
+                    <label className="mb-1 block text-xs text-gray-500">Target</label>
+                    <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={target}
+                        onChange={(e) => setTarget(e.target.value)}
+                        placeholder="2"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                    />
+                    </div>
+                    <div className="flex-1">
+                    <label className="mb-1 block text-xs text-gray-500">Unit</label>
+                    <input
+                        value={unit}
+                        onChange={(e) => setUnit(e.target.value)}
+                        placeholder="L, reps, min…"
+                        maxLength={12}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                    />
+                    </div>
+                </div>
+
+                <p className="text-xs text-gray-400">
+                    {direction === "atMost"
+                    ? `Complete when you stay at or under ${target || "—"} ${unit || "units"}.`
+                    : `Complete when you reach ${target || "—"} ${unit || "units"}.`}
+                </p>
+                </div>
+            )}
             </div>
 
             {/* Start date */}

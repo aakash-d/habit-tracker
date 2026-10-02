@@ -2,6 +2,7 @@ import { addDays, addMonths, eachDayOfInterval, endOfMonth, format, startOfMonth
 import { Habit, RecordsByDate, WeekStart } from "./types";
 import { isScheduledOn, getHabitsForDate } from "./scheduling";
 import { getStreak } from "./streaks";
+import { asCount } from "./measurement";
 
 const fmt = (d: Date) => format(d, "yyyy-MM-dd");
 
@@ -53,6 +54,22 @@ export interface MonthDetail {
   habitStats: MonthHabitStat[];
   bestDay: DaySummary | null;
   worstDay: DaySummary | null;
+}
+
+export interface VolumeStat {
+  habit: Habit;
+  unit: string;
+  target: number;
+  direction: "atLeast" | "atMost";
+
+  total: number;
+  scheduledDays: number;
+  daysLogged: number;
+  average: number;          // total / scheduledDays
+
+  // atLeast → highest value; atMost → lowest value
+  extremeDay: { date: string; value: number } | null;
+  daysOverLimit: number;    // atMost only; 0 for atLeast
 }
 
 /** Per-habit completion rate over [createdAt, today] */
@@ -369,4 +386,86 @@ export function getMonthDelta(
   const idx = monthly.findIndex((m) => m.month === month);
   if (idx <= 0) return null;
   return (monthly[idx].rate - monthly[idx - 1].rate) * 100;
+}
+
+/**
+ * Per-habit volume stats for measurable habits.
+ * Optional from/to bound the range (defaults to habit createdAt → today).
+ */
+export function getVolumeStats(
+  habits: Habit[],
+  records: RecordsByDate,
+  todayStr: string,
+  from?: string,
+  to?: string
+): VolumeStat[] {
+  const measurable = habits
+    .filter((h) => !h.archived && asCount(h.measurement) !== null)
+    .sort((a, b) => a.order - b.order);
+
+  if (measurable.length === 0) return [];
+
+  const today = new Date(`${todayStr}T00:00:00`);
+  const rangeEnd = to ? new Date(`${to}T00:00:00`) : today;
+  const effectiveEnd = rangeEnd > today ? today : rangeEnd;
+
+  return measurable
+    .map((habit) => {
+      const count = asCount(habit.measurement)!;
+
+      const startStr =
+        from && from > habit.createdAt ? from : habit.createdAt;
+      const start = new Date(`${startStr}T00:00:00`);
+      if (start > effectiveEnd) return null;
+
+      let total = 0;
+      let scheduledDays = 0;
+      let daysLogged = 0;
+      let daysOverLimit = 0;
+      let extremeDay: { date: string; value: number } | null = null;
+
+      let cursor = start;
+      while (cursor <= effectiveEnd) {
+        const ds = fmt(cursor);
+
+        if (isScheduledOn(habit.frequency, ds)) {
+          scheduledDays += 1;
+
+          const value = records[ds]?.values?.[habit.id];
+          if (value != null) {
+            total += value;
+            daysLogged += 1;
+
+            if (count.direction === "atMost" && value > count.target) {
+              daysOverLimit += 1;
+            }
+
+            const isBetter =
+              extremeDay === null ||
+              (count.direction === "atMost"
+                ? value < extremeDay.value
+                : value > extremeDay.value);
+            if (isBetter) extremeDay = { date: ds, value };
+          }
+        }
+
+        cursor = addDays(cursor, 1);
+      }
+
+      if (scheduledDays === 0) return null;
+
+      return {
+        habit,
+        unit: count.unit,
+        target: count.target,
+        direction: count.direction,
+        total,
+        scheduledDays,
+        daysLogged,
+        average: total / scheduledDays,
+        extremeDay,
+        daysOverLimit,
+      } satisfies VolumeStat;
+    })
+    .filter((s): s is VolumeStat => s !== null);
 }

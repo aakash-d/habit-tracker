@@ -2,7 +2,8 @@
 
 import { format } from "date-fns";
 import { Flame, TrendingUp, TrendingDown } from "lucide-react";
-import { MonthDetail as MonthDetailData } from "@/lib/stats";
+import { MonthDetail as MonthDetailData, VolumeStat } from "@/lib/stats";
+import { VolumeStats } from "./VolumeStats";
 
 function prettyDate(ds: string) {
   return format(new Date(`${ds}T00:00:00`), "EEE, MMM d");
@@ -11,11 +12,13 @@ function prettyDate(ds: string) {
 export function MonthDetail({
   detail,
   delta,
+  volume,
   months,
   onSelectMonth,
 }: {
   detail: MonthDetailData | null;
   delta: number | null;
+  volume: VolumeStat[];
   months: { month: string; label: string }[];
   onSelectMonth: (month: string) => void;
 }) {
@@ -165,6 +168,14 @@ export function MonthDetail({
               </div>
             );
           })}
+          {volume.length > 0 && (
+            <div>
+              <h4 className="mb-2 text-sm font-semibold text-gray-500">
+                Volume this month
+              </h4>
+              <VolumeStats stats={volume} />
+            </div>
+          )}
         </div>
       </div>
     </div>

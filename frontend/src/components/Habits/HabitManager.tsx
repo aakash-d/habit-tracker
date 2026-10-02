@@ -6,6 +6,7 @@ import { Habit } from "@/lib/types";
 import { HabitForm } from "./HabitForm";
 import { useAddCategory, useCategories, useDeleteCategory } from "@/hooks/useCategories";
 import { useArchiveHabit, useHabits, useReorderHabit } from "@/hooks/useHabits";
+import { measurementLabel } from "@/lib/measurement";
 
 export function HabitManager({ onClose }: { onClose: () => void }) {
     const { data: habits = [] } = useHabits();
@@ -56,7 +57,14 @@ export function HabitManager({ onClose }: { onClose: () => void }) {
                                 className="flex items-center gap-2 rounded-lg border border-gray-200 p-2.5 dark:border-gray-800"
                             >
                                 {h.icon && <span>{h.icon}</span>}
-                                <span className="flex-1 text-sm">{h.name}</span>
+                                <span className="flex-1 text-sm">
+                                    {h.name}
+                                    {measurementLabel(h.measurement) && (
+                                        <span className="ml-1.5 text-xs text-gray-400">
+                                            ({measurementLabel(h.measurement)})
+                                        </span>
+                                    )}
+                                </span>
                                 {cat && (
                                     <span
                                         className="h-2.5 w-2.5 rounded-full"

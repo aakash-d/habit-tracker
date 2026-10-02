@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useTrackerStore } from "@/store/useTrackerStore";
-import { getHabitStats, getHeatmapData, getMonthDelta, getMonthDetail, getMonthlyStats, getPerfectDayStreak, getSummary } from "@/lib/stats";
+import { getHabitStats, getHeatmapData, getMonthDelta, getMonthDetail, getMonthlyStats, getPerfectDayStreak, getSummary, getVolumeStats } from "@/lib/stats";
 import { fmt } from "@/lib/dateUtils";
 import { HabitHeatmap } from "@/components/Stats/HabitHeatMap";
 import { CompletionBars } from "@/components/Stats/CompletionBars";
@@ -12,6 +12,7 @@ import { useCompletions } from "@/hooks/useCompletions";
 import { useState, useMemo } from "react";
 import { MonthlyTrend } from "@/components/Stats/MonthlyTrend";
 import { MonthDetail } from "@/components/Stats/MonthDetail";
+import { VolumeStats } from "@/components/Stats/VolumeStats";
 
 export default function StatsPage() {
     const weekStart = useTrackerStore((s) => s.settings.weekStart);
@@ -61,6 +62,21 @@ export default function StatsPage() {
         () => (effectiveMonth ? getMonthDelta(monthly, effectiveMonth) : null),
         [monthly, effectiveMonth]
     );
+
+    const volume = useMemo(
+        () => getVolumeStats(habits, records, today),
+        [habits, records, today]
+    );
+
+    const monthVolume = useMemo(() => {
+        if (!effectiveMonth) return [];
+        const monthStart = `${effectiveMonth}-01`;
+        const d = new Date(`${monthStart}T00:00:00`);
+        const monthEnd = fmt(
+            new Date(d.getFullYear(), d.getMonth() + 1, 0)
+        );
+        return getVolumeStats(habits, records, today, monthStart, monthEnd);
+    }, [habits, records, effectiveMonth, today]);
 
     return (
         <main className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
@@ -127,16 +143,24 @@ export default function StatsPage() {
                     <MonthDetail
                         detail={monthDetail}
                         delta={monthDelta}
+                        volume={monthVolume}
                         months={monthly.map((m) => ({ month: m.month, label: m.label }))}
                         onSelectMonth={setSelectedMonth}
                     />
                 </section>
 
                 {/* Per-habit bars */}
-                <section className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+                <section className="mb-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <h2 className="mb-3 text-lg font-semibold">Per-habit completion</h2>
                     <CompletionBars stats={stats} />
                 </section>
+
+                {volume.length > 0 && (
+                <section className="mb-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+                    <h2 className="mb-3 text-lg font-semibold">Volume (all time)</h2>
+                    <VolumeStats stats={volume} />
+                </section>
+                )}
             </div>
         </main>
     );

@@ -21,7 +21,7 @@ jlink --add-modules java.base,java.logging,java.management,java.naming,java.desk
 if errorlevel 1 goto :error
 
 echo === Building installer ===
-jpackage --type exe --name "Habit Tracker" --app-version 1.0.0 --vendor "Aakash" --input target --main-jar habit-tracker-api-0.0.1-SNAPSHOT.jar --runtime-image target\runtime --java-options "-Xmx256m -Dapp.open-browser=true" --icon src\main\resources\icon.ico --win-shortcut --win-menu --win-dir-chooser --dest target\installer
+jpackage --type exe --name "Habit Tracker" --app-version 1.1.0 --vendor "Aakash" --input target --main-jar habit-tracker-api-0.0.1-SNAPSHOT.jar --runtime-image target\runtime --java-options "-Xmx256m -Dapp.open-browser=true" --icon src\main\resources\icon.ico --win-shortcut --win-menu --win-upgrade-uuid 8f3a1c20-4b7e-4d19-9f6a-2e5b7c8d1a34 --win-dir-chooser --dest target\installer
 if errorlevel 1 goto :error
 
 echo.

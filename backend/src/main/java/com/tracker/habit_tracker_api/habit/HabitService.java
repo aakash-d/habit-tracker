@@ -42,6 +42,7 @@ public class HabitService {
 				.icon(request.getIcon())
 				.categoryId(request.getCategoryId())
 				.frequency(request.getFrequency())
+				.measurement(request.getMeasurement())
 				.order(nextOrder)
 				.createdAt(request.getCreatedAt() != null ? request.getCreatedAt() : LocalDate.now())
 				.archived(false)
@@ -58,6 +59,7 @@ public class HabitService {
 		habit.setIcon(request.getIcon());
 		habit.setCategoryId(request.getCategoryId());
 		habit.setFrequency(request.getFrequency());
+		habit.setMeasurement(request.getMeasurement());
 		if(request.getCreatedAt() != null) {
 			habit.setCreatedAt(request.getCreatedAt());
 		}
@@ -115,6 +117,7 @@ public class HabitService {
 				.icon(h.getIcon())
 				.categoryId(h.getCategoryId() != null ? String.valueOf(h.getCategoryId()) : null)
 				.frequency(h.getFrequency())
+				.measurement(h.getMeasurement())
 				.order(h.getOrder())
 				.createdAt(h.getCreatedAt())
 				.archived(h.getArchived())

@@ -3,6 +3,7 @@ package com.tracker.habit_tracker_api.habit.dto;
 import java.time.LocalDate;
 
 import com.tracker.habit_tracker_api.habit.Frequency;
+import com.tracker.habit_tracker_api.habit.Measurement;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +21,8 @@ public class HabitRequest {
 	
 	@NotNull(message = "Frequency is required")
 	private Frequency frequency;
+	
+	private Measurement measurement;
 	
 	// optional on create (defaults to today); required-ish on update
 	private LocalDate createdAt;

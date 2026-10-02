@@ -1,7 +1,8 @@
 "use client";
 
 import { api } from "@/lib/api";
-import { RecordsByDate } from "@/lib/types";
+import { asCount } from "@/lib/measurement";
+import { Measurement, RecordsByDate } from "@/lib/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const key = (from: string, to: string) => ["completions", from, to];
@@ -104,4 +105,61 @@ export function useSetTaskNote(from: string, to: string) {
         onSettled: () => 
             qc.invalidateQueries({ queryKey: ["completions"] }),
     });
+}
+
+/** Mirror of the backend's derivation rule, for optimistic updates. */
+function deriveDone(measurement: Measurement | null | undefined, value: number): boolean {
+  const m = asCount(measurement);
+  if (!m) return false;
+  return m.direction === "atMost" ? value <= m.target : value >= m.target;
+}
+
+export function useSetValue(from: string, to: string) {
+  const qc = useQueryClient();
+  const qk = key(from, to);
+
+  return useMutation({
+    mutationFn: (body: {
+      habitId: string;
+      date: string;
+      value: number;
+      measurement?: Measurement | null;
+    }) =>
+      api.put<void>("/completions", {
+        habitId: Number(body.habitId),
+        date: body.date,
+        done: deriveDone(body.measurement, body.value), // backend recomputes anyway
+        value: body.value,
+      }),
+
+    onMutate: async (body) => {
+      await qc.cancelQueries({ queryKey: qk });
+      const previous = qc.getQueryData<RecordsByDate>(qk);
+
+      qc.setQueryData<RecordsByDate>(qk, (old) => {
+        const next: RecordsByDate = { ...(old ?? {}) };
+        const day = next[body.date] ?? { completions: {} };
+        next[body.date] = {
+          ...day,
+          completions: {
+            ...day.completions,
+            [body.habitId]: deriveDone(body.measurement, body.value),
+          },
+          values: { ...(day.values ?? {}), [body.habitId]: body.value },
+        };
+        return next;
+      });
+
+      return { previous };
+    },
+
+    onError: (_e, _b, ctx) => {
+      if (ctx?.previous) qc.setQueryData(qk, ctx.previous);
+    },
+
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["completions"] });
+      qc.invalidateQueries({ queryKey: ["streak"] });
+    },
+  });
 }

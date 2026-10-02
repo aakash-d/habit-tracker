@@ -16,6 +16,7 @@ export interface Habit {
     icon?: string;
     categoryId?: string;
     frequency: Frequency;
+    measurement?: Measurement | null;
     order: number;
     createdAt: string; // ISO date string
     archived?: boolean;
@@ -31,10 +32,20 @@ export interface OneOffTask {
 }
 
 export interface DayRecord {
-    completions: Record<string, boolean>; // habitId -> done
-    taskNotes?: Record<string, string>; // habitId -> note
+    completions: Record<string, boolean>;   // habitId -> done
+    taskNotes?: Record<string, string>;     // habitId -> note
+    values?: Record<string, number>;        // habitId -> recorded value 
     dayNote?: string;
 }
+
+export type Measurement =
+  | { type: "binary" }
+  | {
+      type: "count";
+      target: number;
+      unit: string;
+      direction: "atLeast" | "atMost";
+    };
 
 export type RecordsByDate = Record<string, DayRecord>;
 
